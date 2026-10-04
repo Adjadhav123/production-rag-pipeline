@@ -1,11 +1,12 @@
 langchain
 langchain-community
 langchain-openai
-langchain-qdrant
+langchain-groq
+langchain-chroma
+chromadb
 langchain-text-splitters
+sentence-transformers
 langgraph
-
-qdrant-client
 
 fastapi
 uvicorn[standard]

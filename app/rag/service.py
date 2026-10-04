@@ -1,4 +1,3 @@
-from xml.dom.minidom import DocumentFragment
 from typing import List
 
 from langchain_core.documents import Document 
@@ -39,108 +38,57 @@ class RAGService:
         )
 
 
+        return documents
+
     def build_context(
         self,
         documents: List[Document]
     ):
-
         context_parts = []
-
         for document in documents:
-            source = document.metadata.get(
-                "source",
-                "unknown"
-            )
-
-            page = document.metadata.get(
-                "page"
-            )
-
-            chunk_id = document.metadata.get(
-                "chunk_id" 
-            )
-
+            source = document.metadata.get("source", "unknown")
+            page = document.metadata.get("page")
+            chunk_id = document.metadata.get("chunk_id")
             context_parts.append(
-                f"""
-                SOURCE : {source}
-                PAGE: {page}
-                CHUNK_ID : {chunk_id}
-
-                CONTENT:
-                {document.page_content}
-                """
+                f"SOURCE : {source}\nPAGE: {page}\nCHUNK_ID : {chunk_id}\n\nCONTENT:\n{document.page_content}"
             )
+        return "\n\n".join(context_parts)
 
+    def build_sources(
+        self,
+        documents: List[Document]
+    ):
+        sources = []
+        for document in documents:
+            sources.append(
+                {
+                    "document": document.metadata.get("source"),
+                    "page": document.metadata.get("page"),
+                    "chunk_id": document.metadata.get("chunk_id")
+                }
+            )
+        return sources
 
-        return "\n\n".join(
-            context_parts
+    async def ask(
+        self,
+        question: str
+    ):
+        documents = self.retrieve(question)
+
+        if not documents:
+            return {
+                "answer": "I could not find this information in the documents",
+                "sources": []
+            }
+
+        context = self.build_context(documents)
+        messages = RAG_PROMPT.format_messages(
+            context=context,
+            question=question
         )
+        response = self.llm.invoke(messages)
 
-
-
-        def build_sources(
-            self,
-            documents: List[Document]
-        ):
-
-            sources = []
-
-            for document in documents:
-
-                sources.append(
-                    {
-                        "document": document.metadata.get(
-                            "source"
-                        ),
-                        "page":document.metadata.get(
-                            "page"
-                        ),
-                        "chunk_id": document.metadata.get(
-                            "chunk_id"
-                        )
-                    }
-                )
-
-            
-            return sources
-
-
-        def ask(
-            self,
-            question
-        ):
-
-            documents = self.retrieve(
-                question
-            ) 
-
-            if not documents:
-                return {
-                    "answer": (
-                        "I could not find this information in the documents"
-                    ),
-                    "sources": [] 
-
-                }
-
-
-                context = self.build_context(
-                    documents
-                )
-
-                messages = RAG_PROMPT.format_messages(
-                    context=context,
-                    question=question
-                )
-
-                response = self.llm.invoke(
-                    messages
-                )
-
-
-                return {
-                    "answer" : response.content,
-                    "sources": self.build_sources(
-                        documents
-                    )
-                }
+        return {
+            "answer": response.content,
+            "sources": self.build_sources(documents)
+        }

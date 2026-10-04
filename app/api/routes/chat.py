@@ -1,4 +1,3 @@
-from pydantic.v1.typing import ReprArgs
 from fastapi import APIRouter
 from app.models.schemas import (
     ChatRequest,

@@ -4,11 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     GROQ_API_KEY: str
 
-    LLM_MODEL: str = "qwen/qwen3.8-27b"
-    EMBEDDING_MODEL:str = "nomic-embed-text"
+    LLM_MODEL: str = "llama-3.3-70b-versatile"
+    TEMPERATURE: float = 0.0
+    EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
 
-    QDRANT_URL: str = "http://localhost:6333"
-    QDRANT_COLLECTION: str = "prod_rag"
+    CHROMA_PERSIST_DIRECTORY: str = "./data/chroma_db"
+    VECTOR_COLLECTION: str = "prod_rag"
 
     REDIS_URL: str = "redis://localhost:6379/0"
 
